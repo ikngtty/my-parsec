@@ -1,32 +1,32 @@
 module Main where
 
+import           Control.Monad.State
 import           Lib
 
-anyChar2 :: String -> (String, String)
-anyChar2 xs0 =
-  let (x1, xs1) = anyChar xs0
-      (x2, xs2) = anyChar xs1
-   in ([x1, x2], xs2)
+anyChar2 :: State String String
+anyChar2 = do
+  x1 <- anyChar
+  x2 <- anyChar
+  return [x1, x2]
 
-anyChar3 :: String -> (String, String)
-anyChar3 xs0 =
-  let (x12, xs12) = anyChar2 xs0
-      (x3, xs3) = anyChar xs12
-   in (x12 ++ [x3], xs3)
-
-ldd :: String -> (String, String)
-ldd xs0 =
-  let (x1, xs1) = letter xs0
-      (x2, xs2) = digit xs1
-      (x3, xs3) = digit xs2
-   in ([x1, x2, x3], xs3)
+-- anyChar3 :: State String String
+-- anyChar3 = do
+--   x12 <- anyChar2
+--   x3 <- anyChar
+--   return x12 ++ [x3]
+ldd :: State String String
+ldd = do
+  x1 <- letter
+  x2 <- digit
+  x3 <- digit
+  return [x1, x2, x3]
 
 main :: IO ()
 main = do
   parseTest anyChar "abcde"
   parseTest anyChar2 "abcde"
-  parseTest anyChar3 "abcde"
-  parseTest anyChar3 "ab"
+  -- parseTest anyChar3 "abcde"
+  -- parseTest anyChar3 "ab"
   parseTest (char 'a') "abc"
   parseTest (char 'a') "bcd"
   parseTest digit "abc"

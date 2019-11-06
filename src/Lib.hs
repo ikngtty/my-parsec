@@ -8,23 +8,27 @@ module Lib
   ) where
 
 import           Control.Exception
+import           Control.Monad.State
 import           Data.Char
 
-parseTest :: Show a => (String -> (a, b)) -> String -> IO ()
+parseTest :: Show a => State String a -> String -> IO ()
 parseTest f str =
-  catch (print $ fst $ f str) (\(SomeException e) -> putStr $ show e)
+  catch (print $ evalState f str) (\(SomeException e) -> putStr $ show e)
 
-anyChar :: String -> (Char, String)
-anyChar (x:xs) = (x, xs)
+anyChar :: State String Char
+anyChar = state (\(x:xs) -> (x, xs))
 
-satisfy :: (Char -> Bool) -> String -> (Char, String)
-satisfy f (x:xs)
-  | f x = (x, xs)
+satisfy :: (Char -> Bool) -> State String Char
+satisfy f =
+  state
+    (\(x:xs) ->
+       case f x of
+         True -> (x, xs))
 
-char :: Char -> String -> (Char, String)
+char :: Char -> State String Char
 char c = satisfy (== c)
 
-digit, letter :: String -> (Char, String)
+digit, letter :: State String Char
 digit = satisfy isDigit
 
 letter = satisfy isLetter
