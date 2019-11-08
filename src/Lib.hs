@@ -19,13 +19,13 @@ parseTest :: Show a => State String (Either String a) -> String -> IO ()
 parseTest f str =
   case evalState f str of
     Right r -> print r
-    Left e  -> putStrLn $ "[parser ERROR] " ++ e
+    Left e  -> putStrLn $ "[parser ERROR] " ++ show str ++ " -> " ++ e
 
 anyChar :: State String (Either String Char)
 anyChar = state anyChar
   where
     anyChar (x:xs) = (Right x, xs)
-    anyChar []     = (Left "no char", [])
+    anyChar []     = (Left "too short", [])
 
 satisfy :: (Char -> Bool) -> State String (Either String Char)
 satisfy f = state satisfy
