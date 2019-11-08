@@ -4,10 +4,7 @@ import           Control.Monad.State
 import           Lib
 
 anyChar2 :: State String String
-anyChar2 = do
-  x1 <- anyChar
-  x2 <- anyChar
-  return [x1, x2]
+anyChar2 = sequence [anyChar, anyChar]
 
 anyChar3 :: State String String
 anyChar3 = do
@@ -16,11 +13,7 @@ anyChar3 = do
   return $ x12 ++ [x3]
 
 ldd :: State String String
-ldd = do
-  x1 <- letter
-  x2 <- digit
-  x3 <- digit
-  return [x1, x2, x3]
+ldd = sequence [letter, digit, digit]
 
 main :: IO ()
 main = do
