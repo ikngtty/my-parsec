@@ -16,14 +16,15 @@ parseTest f str =
   catch (print $ evalState f str) (\(SomeException e) -> putStr $ show e)
 
 anyChar :: State String Char
-anyChar = state (\(x:xs) -> (x, xs))
+anyChar = state anyChar
+  where
+    anyChar (x:xs) = (x, xs)
 
 satisfy :: (Char -> Bool) -> State String Char
-satisfy f =
-  state
-    (\(x:xs) ->
-       case f x of
-         True -> (x, xs))
+satisfy f = state satisfy
+  where
+    satisfy (x:xs)
+      | f x = (x, xs)
 
 char :: Char -> State String Char
 char c = satisfy (== c)
