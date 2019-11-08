@@ -10,6 +10,11 @@ module Lib
 import           Control.Monad.State
 import           Data.Char
 
+(<|>) :: Monoid l => Either l r -> Either l r -> Either l r
+Left a <|> Left b = Left $ b <> a
+Left _ <|> Right b = Right b
+Right a <|> Left _ = Right a
+
 parseTest :: Show a => State String (Either String a) -> String -> IO ()
 parseTest f str =
   case evalState f str of
@@ -20,21 +25,29 @@ anyChar :: State String (Either String Char)
 anyChar = state anyChar
   where
     anyChar (x:xs) = (Right x, xs)
-    anyChar []     = (Left "too short", [])
+    anyChar []     = (Left "no char", [])
 
-satisfy ::
-     (Char -> String) -> (Char -> Bool) -> State String (Either String Char)
-satisfy err f = state satisfy
+satisfy :: (Char -> Bool) -> State String (Either String Char)
+satisfy f = state satisfy
   where
     satisfy (x:xs)
       | f x = (Right x, xs)
-      | otherwise = (Left $ err x, xs)
-    satisfy [] = (Left "too short", [])
+      | otherwise = (Left $ ": " ++ show x, xs)
+    satisfy [] = (Left ": no char", [])
 
 char :: Char -> State String (Either String Char)
-char c = satisfy (\x -> show x ++ " is not " ++ show c) (== c)
+char c = (<|>) <$> satisfy (== c) <*> base
+  where
+    base :: State String (Either String Char)
+    base = pure $ Left $ "not " ++ show c
 
 digit, letter :: State String (Either String Char)
-digit = satisfy (\x -> show x ++ " is not a digit") isDigit
+digit = (<|>) <$> satisfy isDigit <*> base
+  where
+    base :: State String (Either String Char)
+    base = pure $ Left "not a digit"
 
-letter = satisfy (\x -> show x ++ " is not a letter") isLetter
+letter = (<|>) <$> satisfy isLetter <*> base
+  where
+    base :: State String (Either String Char)
+    base = pure $ Left "not a letter"
