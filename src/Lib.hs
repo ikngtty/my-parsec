@@ -7,29 +7,33 @@ module Lib
   , letter
   ) where
 
-import           Control.Exception
 import           Control.Monad.State
 import           Data.Char
 
-parseTest :: Show a => State String a -> String -> IO ()
+parseTest :: Show a => State String (Maybe a) -> String -> IO ()
 parseTest f str =
-  catch (print $ evalState f str) (\(SomeException e) -> putStr $ show e)
+  case evalState f str of
+    Just r  -> print r
+    Nothing -> putStrLn "Error!"
 
-anyChar :: State String Char
+anyChar :: State String (Maybe Char)
 anyChar = state anyChar
   where
-    anyChar (x:xs) = (x, xs)
+    anyChar (x:xs) = (Just x, xs)
+    anyChar []     = (Nothing, [])
 
-satisfy :: (Char -> Bool) -> State String Char
+satisfy :: (Char -> Bool) -> State String (Maybe Char)
 satisfy f = state satisfy
   where
     satisfy (x:xs)
-      | f x = (x, xs)
+      | f x = (Just x, xs)
+      | otherwise = (Nothing, xs)
+    satisfy [] = (Nothing, [])
 
-char :: Char -> State String Char
+char :: Char -> State String (Maybe Char)
 char c = satisfy (== c)
 
-digit, letter :: State String Char
+digit, letter :: State String (Maybe Char)
 digit = satisfy isDigit
 
 letter = satisfy isLetter

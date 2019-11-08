@@ -3,17 +3,24 @@ module Main where
 import           Control.Monad.State
 import           Lib
 
-anyChar2 :: State String String
-anyChar2 = sequence [anyChar, anyChar]
+anyChar2 :: State String (Maybe String)
+anyChar2 = do
+  x1 <- anyChar
+  x2 <- anyChar
+  return $ sequence [x1, x2]
 
-anyChar3 :: State String String
+anyChar3 :: State String (Maybe String)
 anyChar3 = do
   x12 <- anyChar2
   x3 <- anyChar
-  return $ x12 ++ [x3]
+  return $ (++) <$> x12 <*> fmap pure x3
 
-ldd :: State String String
-ldd = sequence [letter, digit, digit]
+ldd :: State String (Maybe String)
+ldd = do
+  x1 <- letter
+  x2 <- digit
+  x3 <- digit
+  return $ sequence [x1, x2, x3]
 
 main :: IO ()
 main = do
