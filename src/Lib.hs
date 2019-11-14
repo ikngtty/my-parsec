@@ -10,10 +10,17 @@ module Lib
 import           Control.Monad.State
 import           Data.Char
 
-(<|>) :: Monoid l => Either l r -> Either l r -> Either l r
-Left a <|> Left b = Left $ b <> a
-Left _ <|> Right b = Right b
-Right a <|> Left _ = Right a
+(<|>) ::
+     Monoid l
+  => StateT s (Either l) r
+  -> StateT s (Either l) r
+  -> StateT s (Either l) r
+StateT a <|> StateT b = StateT $ \s -> a s <|> b s
+  where
+    (<|>) :: Monoid l => Either l (r, s) -> Either l (r, s) -> Either l (r, s)
+    Left a <|> Left b = Left $ b <> a
+    Left _ <|> Right b = Right b
+    Right a <|> Left _ = Right a
 
 parseTest :: Show a => StateT String (Either String) a -> String -> IO ()
 parseTest state text =
@@ -36,19 +43,10 @@ satisfy f = StateT satisfy
     satisfy [] = Left ": no char"
 
 char :: Char -> StateT String (Either String) Char
-char c = mapStateT addErrorBase $ satisfy (== c)
-  where
-    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
-    addErrorBase result = result <|> Left ("not " ++ show c)
+char c = satisfy (== c) <|> (lift . Left) ("not " ++ show c)
 
 digit :: StateT String (Either String) Char
-digit = mapStateT addErrorBase $ satisfy isDigit
-  where
-    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
-    addErrorBase result = result <|> Left "not a digit"
+digit = satisfy isDigit <|> (lift . Left) "not a digit"
 
 letter :: StateT String (Either String) Char
-letter = mapStateT addErrorBase $ satisfy isLetter
-  where
-    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
-    addErrorBase result = result <|> Left "not a letter"
+letter = satisfy isLetter <|> (lift . Left) "not a letter"
