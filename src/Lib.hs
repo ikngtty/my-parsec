@@ -15,39 +15,40 @@ Left a <|> Left b = Left $ b <> a
 Left _ <|> Right b = Right b
 Right a <|> Left _ = Right a
 
-parseTest :: Show a => State String (Either String a) -> String -> IO ()
-parseTest f str =
-  case evalState f str of
+parseTest :: Show a => StateT String (Either String) a -> String -> IO ()
+parseTest state text =
+  case evalStateT state text of
     Right r -> print r
-    Left e  -> putStrLn $ "[parser ERROR] " ++ show str ++ " -> " ++ e
+    Left e  -> putStrLn $ "[parser ERROR] " ++ show text ++ " -> " ++ e
 
-anyChar :: State String (Either String Char)
-anyChar = state anyChar
+anyChar :: StateT String (Either String) Char
+anyChar = StateT anyChar
   where
-    anyChar (x:xs) = (Right x, xs)
-    anyChar []     = (Left "too short", [])
+    anyChar (x:xs) = Right (x, xs)
+    anyChar []     = Left "too short"
 
-satisfy :: (Char -> Bool) -> State String (Either String Char)
-satisfy f = state satisfy
+satisfy :: (Char -> Bool) -> StateT String (Either String) Char
+satisfy f = StateT satisfy
   where
     satisfy (x:xs)
-      | f x = (Right x, xs)
-      | otherwise = (Left $ ": " ++ show x, xs)
-    satisfy [] = (Left ": no char", [])
+      | f x = Right (x, xs)
+      | otherwise = Left $ ": " ++ show x
+    satisfy [] = Left ": no char"
 
-char :: Char -> State String (Either String Char)
-char c = (<|>) <$> satisfy (== c) <*> base
+char :: Char -> StateT String (Either String) Char
+char c = mapStateT addErrorBase $ satisfy (== c)
   where
-    base :: State String (Either String Char)
-    base = pure $ Left $ "not " ++ show c
+    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
+    addErrorBase result = result <|> Left ("not " ++ show c)
 
-digit, letter :: State String (Either String Char)
-digit = (<|>) <$> satisfy isDigit <*> base
+digit :: StateT String (Either String) Char
+digit = mapStateT addErrorBase $ satisfy isDigit
   where
-    base :: State String (Either String Char)
-    base = pure $ Left "not a digit"
+    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
+    addErrorBase result = result <|> Left "not a digit"
 
-letter = (<|>) <$> satisfy isLetter <*> base
+letter :: StateT String (Either String) Char
+letter = mapStateT addErrorBase $ satisfy isLetter
   where
-    base :: State String (Either String Char)
-    base = pure $ Left "not a letter"
+    addErrorBase :: Either String (Char, String) -> Either String (Char, String)
+    addErrorBase result = result <|> Left "not a letter"
