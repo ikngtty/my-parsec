@@ -5,6 +5,7 @@ module Lib
   , char
   , digit
   , letter
+  , many
   , (<|>)
   ) where
 
@@ -51,3 +52,13 @@ digit = satisfy isDigit <|> (lift . Left) "not a digit"
 
 letter :: StateT String (Either String) Char
 letter = satisfy isLetter <|> (lift . Left) "not a letter"
+
+many ::
+     StateT String (Either String) Char -> StateT String (Either String) String
+many parser = StateT $ parse ""
+  where
+    parse :: String -> String -> Either String (String, String)
+    parse acm s =
+      case runStateT parser s of
+        Left _        -> Right (acm, s)
+        Right (c, cs) -> parse (acm ++ [c]) cs

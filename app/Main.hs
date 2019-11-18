@@ -40,3 +40,6 @@ main = do
   parseTest letterOrDigit "h"
   parseTest letterOrDigit "2"
   parseTest letterOrDigit ""
+  parseTest (many letter) "abc123"
+  parseTest (many letter) "123abc"
+  parseTest (many letter) "abc"
