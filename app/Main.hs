@@ -15,6 +15,9 @@ anyChar3 = do
 ldd :: StateT String (Either String) String
 ldd = sequence [letter, digit, digit]
 
+letterOrDigit :: StateT String (Either String) Char
+letterOrDigit = letter Lib.<|> digit
+
 main :: IO ()
 main = do
   parseTest anyChar "abcde"
@@ -34,3 +37,6 @@ main = do
   parseTest ldd "012abc"
   parseTest ldd "ab2abc"
   parseTest ldd "a1nabc"
+  parseTest letterOrDigit "h"
+  parseTest letterOrDigit "2"
+  parseTest letterOrDigit ""

@@ -5,6 +5,7 @@ module Lib
   , char
   , digit
   , letter
+  , (<|>)
   ) where
 
 import           Control.Monad.State
