@@ -20,52 +20,59 @@ newtype ErrorInfo =
 
 (<|>) ::
      Monoid l
-  => StateT s (Either l) r
-  -> StateT s (Either l) r
-  -> StateT s (Either l) r
+  => StateT s (Either (l, s)) r
+  -> StateT s (Either (l, s)) r
+  -> StateT s (Either (l, s)) r
 StateT a <|> StateT b = StateT $ \s -> a s <|> b s
   where
-    (<|>) :: Monoid l => Either l (r, s) -> Either l (r, s) -> Either l (r, s)
-    Left a <|> Left b = Left $ b <> a
+    (<|>) ::
+         Monoid l
+      => Either (l, s) (r, s)
+      -> Either (l, s) (r, s)
+      -> Either (l, s) (r, s)
+    Left (ea, sa) <|> Left (eb, _) = Left (eb <> ea, sa)
     Left _ <|> Right b = Right b
     Right a <|> Left _ = Right a
 
-parseTest :: Show a => StateT String (Either ErrorInfo) a -> String -> IO ()
+parseTest ::
+     Show a => StateT String (Either (ErrorInfo, String)) a -> String -> IO ()
 parseTest state text =
   case evalStateT state text of
     Right r -> print r
-    Left (ErrorInfo e) ->
+    Left (ErrorInfo e, _) ->
       putStrLn $ "[parser ERROR] " ++ show text ++ " -> " ++ e
 
-anyChar :: StateT String (Either ErrorInfo) Char
+anyChar :: StateT String (Either (ErrorInfo, String)) Char
 anyChar = StateT anyChar
   where
     anyChar (x:xs) = Right (x, xs)
-    anyChar []     = Left $ ErrorInfo "too short"
+    anyChar []     = Left (ErrorInfo "too short", "")
 
-satisfy :: (Char -> Bool) -> StateT String (Either ErrorInfo) Char
+satisfy :: (Char -> Bool) -> StateT String (Either (ErrorInfo, String)) Char
 satisfy f = StateT satisfy
   where
     satisfy (x:xs)
       | f x = Right (x, xs)
-      | otherwise = Left $ ErrorInfo (": " ++ show x)
-    satisfy [] = Left $ ErrorInfo ": no char"
+      | otherwise = Left (ErrorInfo (": " ++ show x), x : xs)
+    satisfy [] = Left (ErrorInfo ": no char", "")
 
-char :: Char -> StateT String (Either ErrorInfo) Char
-char c = satisfy (== c) <|> (lift . Left) (ErrorInfo $ "not " ++ show c)
+char :: Char -> StateT String (Either (ErrorInfo, String)) Char
+char c =
+  satisfy (== c) <|> (lift . Left) (ErrorInfo ("not " ++ show c), undefined)
 
-digit :: StateT String (Either ErrorInfo) Char
-digit = satisfy isDigit <|> (lift . Left) (ErrorInfo "not a digit")
+digit :: StateT String (Either (ErrorInfo, String)) Char
+digit = satisfy isDigit <|> (lift . Left) (ErrorInfo "not a digit", undefined)
 
-letter :: StateT String (Either ErrorInfo) Char
-letter = satisfy isLetter <|> (lift . Left) (ErrorInfo "not a letter")
+letter :: StateT String (Either (ErrorInfo, String)) Char
+letter =
+  satisfy isLetter <|> (lift . Left) (ErrorInfo "not a letter", undefined)
 
 many ::
-     StateT String (Either ErrorInfo) Char
-  -> StateT String (Either ErrorInfo) String
+     StateT String (Either (ErrorInfo, String)) Char
+  -> StateT String (Either (ErrorInfo, String)) String
 many parser = StateT $ parse ""
   where
-    parse :: String -> String -> Either ErrorInfo (String, String)
+    parse :: String -> String -> Either (ErrorInfo, String) (String, String)
     parse acm s =
       case runStateT parser s of
         Left _        -> Right (acm, s)
