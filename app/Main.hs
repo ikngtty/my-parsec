@@ -43,3 +43,16 @@ main = do
   parseTest (many letter) "abc123"
   parseTest (many letter) "123abc"
   parseTest (many letter) "abc"
+
+checkErrorSensitivity :: IO ()
+checkErrorSensitivity = do
+  parseTest abOrAc "zzz"
+  parseTest abOrAc "abz"
+  parseTest abOrAc "acz"
+  parseTest abOrAc "azz"
+  parseTest abOrAc "a"
+  parseTest abOrAc ""
+  parseTest abOrCd "cde"
+  where
+    abOrAc = sequence [char 'a', char 'b'] <|> sequence [char 'a', char 'c']
+    abOrCd = sequence [char 'a', char 'b'] <|> sequence [char 'c', char 'd']
