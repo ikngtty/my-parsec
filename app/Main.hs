@@ -46,6 +46,8 @@ main = do
 
 checkErrorSensitivity :: IO ()
 checkErrorSensitivity = do
+  parseTest abOrAbc "abc"
+  parseTest abcOrAb "abc"
   parseTest abOrAc "zzz"
   parseTest abOrAc "abz"
   parseTest abOrAc "acz"
@@ -54,5 +56,9 @@ checkErrorSensitivity = do
   parseTest abOrAc ""
   parseTest abOrCd "cde"
   where
+    abOrAbc =
+      sequence [char 'a', char 'b'] <|> sequence [char 'a', char 'b', char 'c']
+    abcOrAb =
+      sequence [char 'a', char 'b', char 'c'] <|> sequence [char 'a', char 'b']
     abOrAc = sequence [char 'a', char 'b'] <|> sequence [char 'a', char 'c']
     abOrCd = sequence [char 'a', char 'b'] <|> sequence [char 'c', char 'd']
