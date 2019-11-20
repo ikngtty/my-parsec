@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Lib
   ( parseTest
   , anyChar
@@ -14,13 +16,7 @@ import           Data.Char
 
 newtype ErrorInfo =
   ErrorInfo String
-
-instance Semigroup ErrorInfo where
-  ErrorInfo a <> ErrorInfo b = ErrorInfo $ a <> b
-
-instance Monoid ErrorInfo where
-  mempty = ErrorInfo (mempty :: String)
-  mappend = (<>)
+  deriving (Semigroup, Monoid)
 
 (<|>) ::
      Monoid l
