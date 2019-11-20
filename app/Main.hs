@@ -1,7 +1,7 @@
 module Main where
 
 import           Control.Monad.State
-import           Text.Parsec
+import           Lib
 
 -- anyChar2 :: StateT String (Either String) String
 anyChar2 = sequence [anyChar, anyChar]
