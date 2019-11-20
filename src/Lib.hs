@@ -19,20 +19,18 @@ newtype ErrorInfo =
   deriving (Semigroup, Monoid)
 
 (<|>) ::
-     Monoid l
+     (Monoid l, Eq s)
   => StateT s (Either (l, s)) r
   -> StateT s (Either (l, s)) r
   -> StateT s (Either (l, s)) r
-StateT a <|> StateT b = StateT $ \s -> a s <|> b s
-  where
-    (<|>) ::
-         Monoid l
-      => Either (l, s) (r, s)
-      -> Either (l, s) (r, s)
-      -> Either (l, s) (r, s)
-    Left (ea, sa) <|> Left (eb, _) = Left (eb <> ea, sa)
-    Left _ <|> Right b = Right b
-    Right a <|> Left _ = Right a
+StateT a <|> StateT b =
+  StateT $ \s ->
+    case (a s, b s) of
+      (Right a, _) -> Right a
+      (Left (ea, sa), Left (eb, _)) -> Left (eb <> ea, sa)
+      (Left (ea, sa), Right b)
+        | sa == s -> Right b
+        | otherwise -> Left (ea, sa)
 
 parseTest ::
      Show a => StateT String (Either (ErrorInfo, String)) a -> String -> IO ()
