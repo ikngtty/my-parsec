@@ -44,7 +44,7 @@ anyChar :: StateT String (Either (ErrorInfo, String)) Char
 anyChar = StateT anyChar
   where
     anyChar (x:xs) = Right (x, xs)
-    anyChar []     = Left (ErrorInfo "too short", "")
+    anyChar xs     = Left (ErrorInfo "too short", xs)
 
 satisfy :: (Char -> Bool) -> StateT String (Either (ErrorInfo, String)) Char
 satisfy f = StateT satisfy
@@ -52,7 +52,7 @@ satisfy f = StateT satisfy
     satisfy (x:xs)
       | f x = Right (x, xs)
       | otherwise = Left (ErrorInfo (": " ++ show x), x : xs)
-    satisfy [] = Left (ErrorInfo ": no char", "")
+    satisfy xs = Left (ErrorInfo ": no char", xs)
 
 char :: Char -> StateT String (Either (ErrorInfo, String)) Char
 char c =
