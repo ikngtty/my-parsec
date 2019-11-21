@@ -1,21 +1,22 @@
 module Main where
 
 import           Control.Monad.State
-import           Lib
+import           Text.Parsec
+import qualified Text.Parsec.String  as PS
 
--- anyChar2 :: StateT String (Either String) String
+anyChar2 :: PS.Parser String
 anyChar2 = sequence [anyChar, anyChar]
 
--- anyChar3 :: StateT String (Either String) String
+anyChar3 :: PS.Parser String
 anyChar3 = do
   x12 <- anyChar2
   x3 <- anyChar
   return $ x12 ++ [x3]
 
--- ldd :: StateT String (Either String) String
+ldd :: PS.Parser String
 ldd = sequence [letter, digit, digit]
 
--- letterOrDigit :: StateT String (Either String) Char
+letterOrDigit :: PS.Parser Char
 letterOrDigit = letter <|> digit
 
 main :: IO ()
