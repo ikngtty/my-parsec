@@ -1,8 +1,10 @@
 module Main where
 
 import           Control.Monad.State
-import           Text.Parsec
-import qualified Text.Parsec.String  as PS
+
+-- import           Text.Parsec
+-- import qualified Text.Parsec.String  as PS
+import           Lib                 as PS
 
 anyChar2 :: PS.Parser String
 anyChar2 = sequence [anyChar, anyChar]
