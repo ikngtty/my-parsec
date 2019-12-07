@@ -2,10 +2,10 @@ module Main where
 
 import           Control.Monad.State
 
--- import           Text.Parsec
--- import qualified Text.Parsec.String  as PS
-import           Lib                 as PS
+import           Text.Parsec
+import qualified Text.Parsec.String  as PS
 
+-- import           Lib                 as PS
 anyChar2 :: PS.Parser String
 anyChar2 = sequence [anyChar, anyChar]
 
@@ -65,3 +65,33 @@ checkErrorSensitivity = do
       sequence [char 'a', char 'b', char 'c'] <|> sequence [char 'a', char 'b']
     abOrAc = sequence [char 'a', char 'b'] <|> sequence [char 'a', char 'c']
     abOrCd = sequence [char 'a', char 'b'] <|> sequence [char 'c', char 'd']
+
+checkTry :: IO ()
+checkTry = do
+  putStrLn "--- ab or ac ---"
+  parseTest abOrAc "zzz"
+  parseTest abOrAc "abz"
+  parseTest abOrAc "acz"
+  parseTest abOrAc "azz"
+  putStrLn "--- try ab or ac ---"
+  parseTest tryAbOrAc "zzz"
+  parseTest tryAbOrAc "abz"
+  parseTest tryAbOrAc "acz"
+  parseTest tryAbOrAc "azz"
+  putStrLn "--- ab or try ac ---"
+  parseTest abOrTryAc "zzz"
+  parseTest abOrTryAc "abz"
+  parseTest abOrTryAc "acz"
+  parseTest abOrTryAc "azz"
+  putStrLn "--- try ab or try ac ---"
+  parseTest tryAbOrTryAc "zzz"
+  parseTest tryAbOrTryAc "abz"
+  parseTest tryAbOrTryAc "acz"
+  parseTest tryAbOrTryAc "azz"
+  where
+    ab = sequence [char 'a', char 'b']
+    ac = sequence [char 'a', char 'c']
+    abOrAc = ab <|> ac
+    tryAbOrAc = try ab <|> ac
+    abOrTryAc = ab <|> try ac
+    tryAbOrTryAc = try ab <|> try ac
